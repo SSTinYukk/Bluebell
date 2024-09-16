@@ -1,4 +1,4 @@
-package snowflakego
+package snowflake
 
 import (
 	"fmt"
