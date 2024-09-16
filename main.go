@@ -1,8 +1,19 @@
 package main
 
-import "bluebell/router"
+import (
+	"bluebell/controller"
+	"bluebell/router"
+	"fmt"
+)
 
 func main() {
+
+	if err := controller.InitTrans("zh"); err != nil {
+		fmt.Printf("inti validator trans failed, err:%v\n", err)
+		return
+	}
+
 	r := router.SetupRouter()
-	r.Run(":8080")
+	r.Run(":80")
+
 }
