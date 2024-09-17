@@ -10,10 +10,10 @@ import (
 type AppConfig struct {
 	Mode      string `mapstructure:"mode"`
 	Port      int    `mapstructure:"port"`
-	Name      string
-	Version   string
-	StartTime string
-	MachineID int
+	Name      string `mapstructure:"name"`
+	Version   string `mapstructure:"version"`
+	StartTime string `mapstructure:"start_time"`
+	MachineID int    `mapstructure:"machine_id"`
 
 	*LogConfig   `mapstructure:"log"`
 	*MySQLConfig `mapstructure:"mysql"`
@@ -23,26 +23,26 @@ type LogConfig struct {
 	Level      string `mapstructure:"level"`
 	Filename   string `mapstructure:"file_name"`
 	MaxSize    int    `mapstructure:"max_size"`
-	MaxAge     int
-	MaxBackups int
+	MaxAge     int    `mapstructure:"max_age"`
+	MaxBackups int    `mapstructure:"max_backups"`
 }
 type MySQLConfig struct {
-	Host         string
-	User         string
-	Password     string
-	DB           string
-	Port         int
-	MaxOpenConns int
-	MaxIdleConns int
+	Host         string `mapstructure:"host"`
+	User         string `mapstructure:"user"`
+	Password     string `mapstructure:"password"`
+	DB           string `mapstructure:"dbname"`
+	Port         int    `mapstructure:"port"`
+	MaxOpenConns int    `mapstructure:"max_open_conns"`
+	MaxIdleConns int    `mapstructure:"max_idle_conns"`
 }
 
 type RedisConfig struct {
-	Host        string
-	Password    string
-	Port        int
-	DB          int
-	PoolSize    int
-	MindleConns int
+	Host         string `mapstructure:"host"`
+	Password     string `mapstructure:"password"`
+	Port         int    `mapstructure:"port"`
+	DB           int    `mapstructure:"db"`
+	PoolSize     int    `mapstructure:"pool_size"`
+	MinIdleConns int    `mapstructure:"min_idle_conns"`
 }
 
 var Conf *AppConfig
@@ -51,7 +51,7 @@ func Init() error {
 	v := viper.New()
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
-	v.AddConfigPath("../config")
+	v.AddConfigPath("./config")
 
 	v.WatchConfig()
 	v.OnConfigChange(func(in fsnotify.Event) {
