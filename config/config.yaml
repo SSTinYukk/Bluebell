@@ -1,25 +1,25 @@
-mode: production
+mode: "dev"
 port: 8080
-name: Bluebell
+name: "blubell"
 version: "1.0.0"
 start_time: "2024-01-01"
 machine_id: 1
 log:
-  level: info
-  filename: app.log
+  level: "info"
+  filename: "app.log"
   max_size: 10
   max_age: 30
   max_backups: 5
 mysql:
-  host: localhost
-  user: root
-  password: 123456
-  dbname: db1
+  host: "localhost"
+  user: "root"
+  password: "123456"
+  dbname: "db1"
   port: 3306
   max_open_conns: 100
   max_idle_conns: 20
 redis:
-  host: localhost
+  host: "localhost"
   password: 123456
   port: 6379
   db: 0
