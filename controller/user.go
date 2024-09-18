@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ func SignUpHandler(c *gin.Context) {
 	//1.验证参数
 	var p models.ParamSignUp
 	if err := c.ShouldBindJSON(&p); err != nil {
+		fmt.Printf("%T:%d", p.Gender, p.Gender)
 		zap.L().Error("SignUp with invalid papram", zap.Error(err))
 		//判断是不是validata error类型
 		errs, ok := err.(validator.ValidationErrors)
@@ -29,11 +31,20 @@ func SignUpHandler(c *gin.Context) {
 		return
 	}
 	//2.处理登录业务
-	logic.SignUp(&p)
+
+	if err := logic.SignUp(&p); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": err,
+		})
+	}
 	//3.返回响应
 	c.JSON(http.StatusOK, gin.H{
-		"msg":  "ok",
+		"msg":  "Signup OK",
 		"user": p.Username,
 	})
+
+}
+
+func LoginHandler(c *gin.Context) {
 
 }

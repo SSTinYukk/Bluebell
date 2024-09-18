@@ -12,6 +12,7 @@ func SetupRouter() *gin.Engine {
 	r := gin.New()
 	//中间件
 	r.POST("/signup", controller.SignUpHandler)
+	r.POST("/login", controller.LoginHandler)
 	//路由
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "pong")
