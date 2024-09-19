@@ -1,11 +1,11 @@
 package models
 
 type User struct {
-	UserID       uint64 `json:"user_id,omitempty"`
-	Username     string `json:"username,omitempty"`
-	Password     string `json:"password,omitempty"`
-	Email        string `json:"email,omitempty"`
-	Gender       int    `json:"gender,omitempty"`
-	AccessToken  string `json:"access_token,omitempty"`
-	RefreshToken string `json:"refresh_token,omitempty"`
+	UserID       uint64 `json:"user_id,string" db:"user_id"` // 指定json序列化/反序列化时使用小写user_id
+	Username     string `json:"username" db:"username"`
+	Password     string `json:"password" db:"password"`
+	Email        string `json:"email" db:"gender"`  // 邮箱
+	Gender       int    `json:"gender" db:"gender"` // 性别
+	AccessToken  string
+	RefreshToken string
 }

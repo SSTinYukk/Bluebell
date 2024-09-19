@@ -5,17 +5,7 @@ import (
 	"bluebell/models"
 	"bluebell/pkg/snowflake"
 	"errors"
-
-	"golang.org/x/crypto/bcrypt"
 )
-
-func hashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
-}
 
 func SignUp(p *models.ParamSignUp) (err error) {
 	//判断用户是否存在
@@ -32,10 +22,6 @@ func SignUp(p *models.ParamSignUp) (err error) {
 	if err != nil {
 		return
 	}
-	p.Password, err = hashPassword(p.Password)
-	if err != nil {
-		return
-	}
 	user := &models.User{
 		UserID:   userID,
 		Password: p.Password,
@@ -48,4 +34,16 @@ func SignUp(p *models.ParamSignUp) (err error) {
 	}
 	//返回
 	return nil
+}
+
+func Login(p *models.ParamLogin) (err error) {
+	user := &models.User{
+		Username: p.Username,
+		Password: p.Password,
+	}
+	if err = mysql.VerifyPassword(user); err != nil {
+		return
+	}
+
+	return
 }

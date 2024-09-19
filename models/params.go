@@ -7,3 +7,8 @@ type ParamSignUp struct {
 	Email      string `json:"email,omitempty" binding:"required"`
 	Gender     int    `json:"gender,omitempty"  binding:"required"`
 }
+
+type ParamLogin struct {
+	Username string `json:"username,omitempty" binding:"required"`
+	Password string `json:"password,omitempty" binding:"required"`
+}
