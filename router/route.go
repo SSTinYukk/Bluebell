@@ -2,6 +2,7 @@ package router
 
 import (
 	"bluebell/controller"
+	"bluebell/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,7 @@ func SetupRouter() *gin.Engine {
 	r.POST("/signup", controller.SignUpHandler)
 	r.POST("/login", controller.LoginHandler)
 	//路由
-	r.GET("/ping", func(c *gin.Context) {
+	r.GET("/ping", middleware.JWTAuthMiddleware(), func(c *gin.Context) {
 		c.JSON(http.StatusOK, "pong")
 		defer c.Writer.CloseNotify()
 		defer c.Request.Body.Close()

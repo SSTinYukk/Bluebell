@@ -12,7 +12,7 @@ type ResponseData struct {
 	Data    interface{} `json:"data"`
 }
 
-func ResonseError(ctx *gin.Context, code StatusCode) {
+func ResponseError(ctx *gin.Context, code StatusCode) {
 	ctx.JSON(http.StatusOK, ResponseData{
 		Code:    code,
 		Message: code.Msg(),
