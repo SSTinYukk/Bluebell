@@ -10,7 +10,7 @@ import (
 
 func JWTAuthMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		authHeader := c.Request.Header.Get("Authprization")
+		authHeader := c.Request.Header.Get("Autho	rization")
 		if authHeader == "" {
 			controller.ResponseError(c, controller.CodeNotLogin)
 			c.Abort()

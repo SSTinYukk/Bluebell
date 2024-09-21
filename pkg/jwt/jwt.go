@@ -7,7 +7,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-const TokenExipreDuration = time.Hour * 2
+const (
+	AccessTokenExipreDuration  = time.Hour * 24
+	RefreshTokenExipreDuration = time.Hour * 24 * 7
+)
 
 var JWTSalt = []byte("夏天夏天悄悄过去")
 
@@ -18,17 +21,25 @@ type MyClaims struct {
 }
 
 // GenToken 生成JWT
-func GenToken(userID uint64, username string) (string, error) {
+func GenToken(userID uint64, username string) (aToken, rToken string, err error) {
 	c := MyClaims{
 		UserID:   userID,
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(TokenExipreDuration).Unix(),
+			ExpiresAt: time.Now().Add(AccessTokenExipreDuration).Unix(),
 			Issuer:    "bluebell",
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	return token.SignedString(JWTSalt)
+	aToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, c).SignedString(JWTSalt)
+	if err != nil {
+		return
+	}
+	rToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(RefreshTokenExipreDuration).Unix(),
+		Issuer:    "bluebell",
+	}).SignedString(JWTSalt)
+
+	return
 }
 
 func ParseToken(tokenString string) (*MyClaims, error) {
@@ -43,4 +54,21 @@ func ParseToken(tokenString string) (*MyClaims, error) {
 		return mc, nil
 	}
 	return nil, errors.New("invalid token")
+}
+
+func RefreshToken(aToken, rToken string) (newAToken, newRToken string, err error) {
+	if _, err = jwt.Parse(rToken, func(t *jwt.Token) (interface{}, error) {
+		return JWTSalt, nil
+	}); err != nil {
+		return
+	}
+	var claims MyClaims
+	_, err = jwt.ParseWithClaims(aToken, &claims, func(t *jwt.Token) (interface{}, error) {
+		return JWTSalt, nil
+	})
+	v, _ := err.(*jwt.ValidationError)
+	if v.Errors == jwt.ValidationErrorExpired {
+		return GenToken(claims.UserID, claims.Username)
+	}
+	return
 }
