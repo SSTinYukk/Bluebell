@@ -1,12 +1,16 @@
 package controller
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 
 	"bluebell/logic"
 	"bluebell/models"
+	"bluebell/pkg/jwt"
 )
 
 func SignUpHandler(c *gin.Context) {
@@ -45,12 +49,47 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 	//处理登录业务
-	token, err := logic.Login(p)
+	user, err := logic.Login(p)
 	if err != nil {
 		ResponseError(c, CodeUserNotExist)
 		return
 	}
 	//返回处理结果
-	ResponseSuccess(c, token)
+	ResponseSuccess(c, gin.H{
+		"user_id":       fmt.Sprintf("%d", user.UserID),
+		"username":      user.Username,
+		"access_token":  user.AccessToken,
+		"refresh_token": user.RefreshToken,
+	})
 
+}
+func RefreshTokenHandler(c *gin.Context) {
+	//获取query参数
+	rt := c.Query("refresh_token")
+	authHeader := c.Request.Header.Get("Authorization")
+	if authHeader == "" {
+		ResponseErrorWithMsg(c, CodeInvalidToken, "请求头缺少Auth Token")
+		c.Abort()
+		return
+	}
+	parts := strings.SplitN(authHeader, " ", 2)
+	if !(len(parts) == 2 && parts[0] == "Bearer") {
+		ResponseErrorWithMsg(c, CodeInvalidToken, "Token格式不对")
+		c.Abort()
+		return
+	}
+	//处理
+	aToken, rToken, err := jwt.RefreshToken(parts[1], rt)
+	if err != nil {
+		zap.L().Error("jwt.RefreshToken failed", zap.Error(err))
+		ResponseError(c, CodeInvalidToken)
+		c.Abort()
+		return
+	}
+	//返回
+
+	ResponseSuccess(c, gin.H{
+		"access_token":  aToken,
+		"refresh_token": rToken,
+	})
 }

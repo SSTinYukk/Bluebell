@@ -17,6 +17,7 @@ func SetupRouter() *gin.Engine {
 	v1 := r.Group("/api/v1")
 	v1.POST("/signup", controller.SignUpHandler)
 	v1.POST("/login", controller.LoginHandler)
+	v1.POST("/refresh_token", controller.RefreshTokenHandler)
 	v1.GET("/ping", middleware.JWTAuthMiddleware(), func(c *gin.Context) {
 		c.JSON(http.StatusOK, "pong")
 		defer c.Writer.CloseNotify()
@@ -25,6 +26,7 @@ func SetupRouter() *gin.Engine {
 	v1.Use(middleware.JWTAuthMiddleware())
 	{
 		v1.GET("/community", controller.CommunityHandler)
+		v1.GET("/community/:id", controller.CommunityDetailHandler)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
