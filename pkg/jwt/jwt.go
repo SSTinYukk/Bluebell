@@ -12,12 +12,16 @@ const (
 	RefreshTokenExipreDuration = time.Hour * 24 * 7
 )
 
-var JWTSalt = []byte("夏天夏天悄悄过去")
-
 type MyClaims struct {
 	UserID   uint64 `json:"user_id,omitempty"`
 	Username string `json:"username,omitempty"`
 	jwt.StandardClaims
+}
+
+var JWTSalt = []byte("夏天夏天悄悄过去")
+
+func keyFunc(_ *jwt.Token) (interface{}, error) {
+	return JWTSalt, nil
 }
 
 // GenToken 生成JWT
@@ -57,17 +61,15 @@ func ParseToken(tokenString string) (*MyClaims, error) {
 }
 
 func RefreshToken(aToken, rToken string) (newAToken, newRToken string, err error) {
-	if _, err = jwt.Parse(rToken, func(t *jwt.Token) (interface{}, error) {
-		return JWTSalt, nil
-	}); err != nil {
+	if _, err = jwt.Parse(rToken, keyFunc); err != nil {
 		return
 	}
+
 	var claims MyClaims
-	_, err = jwt.ParseWithClaims(aToken, &claims, func(t *jwt.Token) (interface{}, error) {
-		return JWTSalt, nil
-	})
-	v, _ := err.(*jwt.ValidationError)
-	if v.Errors == jwt.ValidationErrorExpired {
+	_, err = jwt.ParseWithClaims(aToken, &claims, keyFunc)
+	v, ok := err.(*jwt.ValidationError)
+
+	if err == nil || ok && v.Errors == jwt.ValidationErrorExpired {
 		return GenToken(claims.UserID, claims.Username)
 	}
 	return
