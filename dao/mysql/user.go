@@ -44,3 +44,10 @@ func VerifyPassword(user *models.User) (err error) {
 
 	return
 }
+
+func GetUserByID(id uint64) (user *models.User, err error) {
+	user = new(models.User)
+	sqlStr := `select username from user where user_id = ? `
+	err = db.Get(user, sqlStr, id)
+	return
+}

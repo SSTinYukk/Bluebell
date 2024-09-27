@@ -12,3 +12,10 @@ type Post struct {
 	CreateTime  time.Time `json:"-" db:"create_time"`
 	UpdateTime  time.Time `json:"-" db:"update_time"`
 }
+
+type ApiPostDetail struct {
+	*Post
+	*CommunityDetailRes `json:"community"`
+	AuthorName          string `json:"author_name"`
+	VoteNum             int64  `json:"vote_num"`
+}

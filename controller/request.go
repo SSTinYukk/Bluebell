@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +13,7 @@ var (
 
 const CtxUserIDKey = "userID"
 
-func GetCurrentUserID(c *gin.Context) (userID uint64, err error) {
+func getCurrentUserID(c *gin.Context) (userID uint64, err error) {
 	uid, ok := c.Get(CtxUserIDKey)
 	if !ok {
 		err = ErrorUserNotlogin
@@ -22,6 +23,18 @@ func GetCurrentUserID(c *gin.Context) (userID uint64, err error) {
 	if !ok {
 		err = ErrorUserNotlogin
 		return
+	}
+	return
+}
+
+func getPageInfo(c *gin.Context) (page, size int64, err error) {
+	pageStr := c.Query("page")
+	sizeStr := c.Query("size")
+	if page, err = strconv.ParseInt(pageStr, 10, 64); err != nil {
+		page = 1
+	}
+	if size, err = strconv.ParseInt(sizeStr, 10, 64); err != nil {
+		size = 10
 	}
 	return
 }
