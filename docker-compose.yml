@@ -9,12 +9,22 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "13306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p123456"]
       interval: 10s
       timeout: 5s
       retries: 3
-
+  redis:
+    image: redis:5.0.7
+    command: redis-server --requirepass 123456
+    ports:
+      - "16379:6379"
+    environment:
+      - REDIS_DB=0
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "6379", "-a", "123456", "ping"]
+      interval: 10s
+      timeout: 3s
 volumes:
   mysql_data:
