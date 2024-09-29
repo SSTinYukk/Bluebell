@@ -45,6 +45,7 @@ func GetPostDetailHandler(c *gin.Context) {
 	}
 	ResponseSuccess(c, data)
 }
+
 func GetPostListHandler(c *gin.Context) {
 	page, size, err := getPageInfo(c)
 	if err != nil {

@@ -2,6 +2,7 @@ package logic
 
 import (
 	"bluebell/dao/mysql"
+	"bluebell/dao/redis"
 	"bluebell/models"
 	"bluebell/pkg/snowflake"
 
@@ -17,6 +18,11 @@ func CreatePost(p *models.Post) error {
 	if err := mysql.CreatePost(p); err != nil {
 		zap.L().Error("mysql.CreatePost(p) failed", zap.Error(err))
 		return err
+	}
+	if err := redis.CreatePost(p.PostID, p.AuthorId,
+		p.Title, TruncateByWords(p.Content, 120), p.CommunityID); err != nil {
+		zap.L().Error("CreatePost fialed", zap.Error(err))
+
 	}
 	return nil
 }

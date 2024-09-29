@@ -19,3 +19,6 @@ func Init(cfg *settings.AppConfig) (err error) {
 	db.SetMaxIdleConns(cfg.MaxIdleConns)
 	return
 }
+func Close() {
+	_ = db.Close()
+}
