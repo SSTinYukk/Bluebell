@@ -3,6 +3,7 @@ package main
 import (
 	"bluebell/controller"
 	"bluebell/dao/mysql"
+	"bluebell/dao/redis"
 	"bluebell/logger"
 	"bluebell/pkg/snowflake"
 	"bluebell/router"
@@ -28,11 +29,16 @@ func main() {
 		fmt.Printf("init validator trans failed, err:%v\n", err)
 		return
 	}
-
+	if err := redis.Init(settings.Conf.RedisConfig); err != nil {
+		fmt.Printf("init redis failed, err:%v\n", err)
+		return
+	}
+	defer redis.Close()
 	if err := mysql.Init(settings.Conf); err != nil {
 		fmt.Printf("init mysql failed, err:%v\n", err)
 		return
 	}
+	defer mysql.Close()
 	r := router.SetupRouter()
 	r.Run(fmt.Sprintf(":%d", settings.Conf.Port))
 
