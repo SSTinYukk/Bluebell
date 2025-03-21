@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -35,7 +36,7 @@ func VoteForPost(userID, postID string, v float64) (err error) {
 	diffAbs := math.Abs(ov - v)
 	pipeline := client.TxPipeline()
 	incrementScore := VoteScore * diffAbs * op
-	_, err = pipeline.ZIncrBy(KeyPostScore, incrementScore, postID).Result()
+	_, err = pipeline.ZIncrBy(KeyPostScoreZSet, incrementScore, postID).Result()
 	if err != nil {
 		return err
 	}
@@ -50,10 +51,11 @@ func VoteForPost(userID, postID string, v float64) (err error) {
 	pipeline.HIncrBy(KeyPostInfoHashPrefix+postID, "votes", int64(op))
 	return
 }
+
 func CreatePost(postID, userID uint64, title, summary string, CommunityID uint64) (err error) {
 	now := float64(time.Now().Unix())
-	votedKey := KeyPostVotedZSetPrefix + strconv.Itoa(int(CommunityID))
-	commutyKey := KeyCommunityPostSetPredix + strconv.Itoa(int(CommunityID))
+	votedKey := KeyPostVotedZSetPrefix + strconv.Itoa(int(postID))
+	commutyKey := KeyCommunityPostSetPrefix + strconv.Itoa(int(CommunityID))
 	postInfo := map[string]interface{}{
 		"title":    title,
 		"summary":  postID,
@@ -62,6 +64,7 @@ func CreatePost(postID, userID uint64, title, summary string, CommunityID uint64
 		"votes":    1,
 		"comments": 0,
 	}
+	fmt.Println(postInfo, votedKey, commutyKey)
 	pipeline := client.TxPipeline()
 	pipeline.ZAdd(votedKey, redis.Z{
 		Score:  1,
@@ -69,8 +72,12 @@ func CreatePost(postID, userID uint64, title, summary string, CommunityID uint64
 	})
 	pipeline.Expire(votedKey, time.Second*OneMonthInSeconds*6)
 	pipeline.HMSet(KeyPostInfoHashPrefix+strconv.Itoa(int(postID)), postInfo)
-	pipeline.ZAdd(KeyPostScore, redis.Z{
+	pipeline.ZAdd(KeyPostScoreZSet, redis.Z{
 		Score:  now + VoteScore,
+		Member: postID,
+	})
+	pipeline.ZAdd(KeyPostTimeZSet, redis.Z{
+		Score:  now,
 		Member: postID,
 	})
 	pipeline.SAdd(commutyKey, postID)

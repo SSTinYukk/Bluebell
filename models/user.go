@@ -16,7 +16,7 @@ type User struct {
 }
 type VoteDataForm struct {
 	PostID    string `json:"post_id" binding:"required"`
-	Direction int8   `json:"direction,string" binding:"oneof=1 0 -1"`
+	Direction int8   `json:"direction,string,omitempty" binding:"oneof=1 0 -1"`
 }
 
 func (v *VoteDataForm) UnmarshalJSON(data []byte) (err error) {

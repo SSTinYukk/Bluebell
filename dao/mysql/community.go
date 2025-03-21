@@ -36,3 +36,19 @@ func GetCommunityByID(id uint64) (*models.CommunityDetailRes, error) {
 		CreateTime:    commty.CreateTime.Format("2006-01-02 15:04:05"),
 	}, err
 }
+func GetCommunityNameByID(idStr string) (community *models.Community, err error) {
+	community = new(models.Community)
+	sqlStr := `select community_id, community_name
+	from community
+	where community_id = ?`
+	err = db.Get(community, sqlStr, idStr)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New(ErrorInvalidID)
+
+		}
+		zap.L().Error("query community failed", zap.String("sql", sqlStr), zap.Error(err))
+		return nil, errors.New(ErrorQueryFailed)
+	}
+	return
+}

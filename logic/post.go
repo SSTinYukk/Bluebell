@@ -22,7 +22,7 @@ func CreatePost(p *models.Post) error {
 	if err := redis.CreatePost(p.PostID, p.AuthorId,
 		p.Title, TruncateByWords(p.Content, 120), p.CommunityID); err != nil {
 		zap.L().Error("CreatePost fialed", zap.Error(err))
-
+		return err
 	}
 	return nil
 }
