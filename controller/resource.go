@@ -3,6 +3,8 @@ package controller
 import (
 	"bluebell/logic"
 	"io"
+	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -62,7 +64,7 @@ func GetResourceByIDHandler(c *gin.Context) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		zap.L().Error("解析资源 ID 失败", zap.Error(err))
-		ResponseError(c, CodeInvalidParams)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的资源 ID"})
 		return
 	}
 
@@ -70,10 +72,74 @@ func GetResourceByIDHandler(c *gin.Context) {
 	resource, err := logic.GetResourceByID(id)
 	if err != nil {
 		zap.L().Error("获取文件资源信息失败", zap.Error(err))
-		ResponseError(c, CodeServerBusy)
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 返回成功响应
-	ResponseSuccess(c, resource)
+	// 读取文件内容
+	fileData, err := os.ReadFile(resource.Path)
+	if err != nil {
+		zap.L().Error("读取文件失败", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "无法读取文件"})
+		return
+	}
+
+	// 设置响应头，指定文件类型和文件名
+	c.Header("Content-Disposition", "attachment; filename="+resource.Filename)
+	c.Header("Content-Type", "application/octet-stream")
+	// 将文件内容写入响应
+	c.Writer.Write(fileData)
+}
+
+func ReviewResourceHandler(c *gin.Context) {
+	// 获取资源 ID
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		zap.L().Error("解析资源 ID 失败", zap.Error(err))
+		c.JSON(400, gin.H{"error": "无效的资源 ID"})
+		return
+	}
+
+	// 定义一个结构体来接收 JSON 数据
+	type ReviewRequest struct {
+		Status int `json:"status"`
+	}
+	var req ReviewRequest
+	if err := c.BindJSON(&req); err != nil {
+		zap.L().Error("解析请求体失败", zap.Error(err))
+		c.JSON(400, gin.H{"error": "无效的请求体"})
+		return
+	}
+
+	// 调用逻辑函数进行审核
+	err = logic.ReviewResource(id, req.Status)
+	if err != nil {
+		zap.L().Error("审核资源失败", zap.Error(err))
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "资源审核成功"})
+}
+
+func DeleteResourceHandler(c *gin.Context) {
+	// 获取资源 ID
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		zap.L().Error("解析资源 ID 失败", zap.Error(err))
+		c.JSON(400, gin.H{"error": "无效的资源 ID"})
+		return
+	}
+
+	// 调用逻辑函数删除资源
+	err = logic.DeleteResource(id)
+	if err != nil {
+		zap.L().Error("删除资源失败", zap.Error(err))
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "文件删除成功"})
 }

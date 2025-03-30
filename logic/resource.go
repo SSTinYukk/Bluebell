@@ -4,6 +4,7 @@ import (
 	"bluebell/dao/mysql"
 	"bluebell/models"
 	"bluebell/pkg/snowflake"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -51,7 +52,39 @@ func UploadResource(fileData []byte, filename string, authorID uint64) (*models.
 	return resource, nil
 }
 
-// GetResourceByID 根据资源 ID 获取文件资源信息
 func GetResourceByID(id int64) (*models.Resource, error) {
-	return mysql.GetResourceByID(id)
+	resource, err := mysql.GetResourceByID(id)
+	if err != nil {
+		return nil, err
+	}
+	// 检查资源状态，只有状态为 1（已通过）才允许访问
+	if resource.Status != 1 {
+		return nil, errors.New("资源未通过审核，无法访问")
+	}
+	return resource, nil
+}
+
+func ReviewResource(id int64, status int) error {
+	// 简单检查状态值是否合法，假设 0 为待审核，1 为通过，2 为拒绝
+	if status < 0 || status > 2 {
+		return errors.New("无效的审核状态")
+	}
+	return mysql.UpdateResourceStatus(id, status)
+}
+
+func DeleteResource(id int64) error {
+	// 获取资源信息
+	resource, err := mysql.GetResourceByID(id)
+	if err != nil {
+		return err
+	}
+
+	// 删除本地文件
+	err = os.Remove(resource.Path)
+	if err != nil {
+		return err
+	}
+
+	// 删除数据库记录
+	return mysql.DeleteResource(id)
 }

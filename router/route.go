@@ -33,6 +33,8 @@ func SetupRouter() *gin.Engine {
 		v1.POST("/vote", controller.VoteHandler)
 		v1.POST("/resource/upload", controller.UploadResourceHandler)
 		v1.GET("/resource/:id", controller.GetResourceByIDHandler)
+		v1.POST("/resource/review/:id", controller.ReviewResourceHandler)
+		v1.DELETE("/resource/:id", controller.DeleteResourceHandler)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
